@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 
-class Kettle(private val port: Int, private val router: Router) : HttpHandler {
+class Kettle(private val port: Int, private val router: Router, private val beforeRequest: Operation?=null) : HttpHandler {
     override fun handle(p0: HttpExchange?) {
         if(p0 == null)return
 
@@ -19,10 +19,29 @@ class Kettle(private val port: Int, private val router: Router) : HttpHandler {
             val bufIn = p0.requestBody.bufferedReader()
 
             val payloadOpt = bufIn.lines().reduce { s1, s2 -> s1 + s2}
-            val request = Request(url, method, version, headers.toMap(), if (payloadOpt.isPresent) {payloadOpt.get()}else{""})
+            val request = Request(url, method, version, headers.toMap(), if (payloadOpt.isPresent) {payloadOpt.get()}else{""}, mapOf(), mapOf())
             bufIn.close()
 
-            router.route(request, response)
+            if(beforeRequest != null) {
+                beforeRequest.beforeRequest(
+                        request,
+                        response
+                ) {
+                    req, res ->
+                    if(res.isEnd)return@beforeRequest
+                    beforeRequest.call(
+                            req,
+                            res,
+                            {
+                                rq, rs ->
+                                router.route(rq, rs)
+                            },
+                            forceEndResponse = false
+                    )
+                }
+            }else{
+                router.route(request, response)
+            }
         }catch (e: Exception) {
             e.printStackTrace()
             response.status = 500
