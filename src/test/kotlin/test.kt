@@ -1,5 +1,3 @@
-package net.sileader.kettle.test
-
 import net.sileader.kettle.*
 
 class MainOperation : Operation() {
