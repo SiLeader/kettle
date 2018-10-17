@@ -13,13 +13,20 @@ class Kettle(private val port: Int, private val router: Router, private val befo
         try {
             val method = p0.requestMethod
             val url = p0.requestURI.path
+            val query = p0.requestURI.query
             val version = p0.protocol
             val headers = p0.requestHeaders
+
+            val args = if(!query.isNullOrEmpty()) {
+                query.split("&").asSequence().map { it.split("=") }.map { Pair(it[0], it[1]) }.toList()
+            }else{
+                listOf()
+            }
 
             val bufIn = p0.requestBody.bufferedReader()
 
             val payloadOpt = bufIn.lines().reduce { s1, s2 -> s1 + s2}
-            val request = Request(url, method, version, headers.toMap(), if (payloadOpt.isPresent) {payloadOpt.get()}else{""}, mapOf(), mapOf())
+            val request = Request(url, method, version, headers.toMap(), if (payloadOpt.isPresent) {payloadOpt.get()}else{""}, mapOf(), args.toMap())
             bufIn.close()
 
             if(beforeRequest != null) {

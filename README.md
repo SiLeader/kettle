@@ -1,28 +1,13 @@
-import net.sileader.kettle.*
-import net.sileader.kettle.operations.ContinuousRoutingOperation
-import net.sileader.kettle.operations.FileOperation
+# Kettle: Simple Web Micro framework
 
-class MainOperation : Operation() {
-    override fun get(request: Request, response: Response) {
-        response.body = "hello world"
-        response.end()
-    }
-}
+&copy; 2018 SiLeader.
 
-class PatternOperation : Operation() {
-    override fun get(request: Request, response: Response) {
-        response.body = "req: a: ${request.params["a"]}"
-        response.end()
-    }
-}
+## features
++ Easy to create RESTful API
++ Return files
 
-class PathOperation : Operation() {
-    override fun get(request: Request, response: Response) {
-        response.body = "req: a: ${request.params["path"]}"
-        response.end()
-    }
-}
-
+## usage
+```kotlin
 fun main(args: Array<String>) {
     Kettle(
             8080,
@@ -45,3 +30,13 @@ fun main(args: Array<String>) {
             )
     ).run()
 }
+```
+
+1. Create `Operation` implementation.
+1. Create `Router` and `Kettle` instances.
+
+### Operation
+`Operation` class is a base class to process request from clients.
+
+This class has `get`, `post`, `put`, `delete`, and `beforeRequest` methods.
+If you want to process GET requests, you must override `get` method.
