@@ -6,6 +6,13 @@ plugins {
 group 'net.sileader.kettle'
 version '1.0'
 
+task createVersion {
+    doFirst {
+        file("${project.sourceSets.main.kotlin.srcDirs[0]}/net/sileader/kettle/version.kt")
+                .write("package net.sileader.kettle\n\nconst val VERSION = \"$version\"\n")
+    }
+}
+
 repositories {
     mavenCentral()
     jcenter()

@@ -43,13 +43,19 @@ abstract class Operation {
     )
 
     fun call(request: Request, response: Response, next: (Request, Response) -> Unit, forceEndResponse: Boolean=true) {
-        beforeRequest(request, response)
-        if(response.isEnd)return
+        beforeRequest(request, response) {
+            req, res ->
+            if(res.isEnd)return@beforeRequest
 
-        funcMap[request.method]?.invoke(request, response, next)
-        if(forceEndResponse && !response.isEnd) {
-            response.status = 405
-            response.end()
+            funcMap[req.method]?.invoke(req, res) {
+                q, s ->
+                if(forceEndResponse && !s.isEnd) {
+                    s.status = 405
+                    s.end()
+                }else{
+                    next(q, s)
+                }
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ class Kettle(private val port: Int, private val router: Router, private val befo
     override fun handle(p0: HttpExchange?) {
         if(p0 == null)return
 
-        val response = Response(p0)
+        val response = Response(p0, "Kettle $VERSION")
         try {
             val method = p0.requestMethod
             val url = p0.requestURI.path

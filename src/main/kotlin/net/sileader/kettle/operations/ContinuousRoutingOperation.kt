@@ -6,7 +6,7 @@ import net.sileader.kettle.Response
 import net.sileader.kettle.Router
 
 class ContinuousRoutingOperation(private val router: Router) : Operation() {
-    override fun beforeRequest(request: Request, response: Response) {
+    override fun beforeRequest(request: Request, response: Response, next: (Request, Response) -> Unit) {
         var path = request.params["path"] ?: request.url
         if(path.isEmpty())path = "/"
 

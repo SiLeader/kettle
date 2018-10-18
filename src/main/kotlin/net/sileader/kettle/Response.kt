@@ -2,16 +2,24 @@ package net.sileader.kettle
 
 import com.sun.net.httpserver.HttpExchange
 
-class Response(private val exchange: HttpExchange) {
+class Response(private val exchange: HttpExchange, serverName: String) {
     private var isEndSession = false
 
     var status = 200
     var body = ""
-    val headers = mutableMapOf("Server" to "Kettle")
+    private val mHeaders = mutableMapOf<String, String>()
     val isEnd get() = isEndSession
 
+    init {
+        addHeader("Server", serverName)
+    }
+
+    fun addHeader(key: String, value: String) {
+        mHeaders[key.toLowerCase()] = value
+    }
+
     fun end() {
-        headers.forEach {k, v -> exchange.responseHeaders.add(k, v)}
+        mHeaders.forEach {k, v -> exchange.responseHeaders.add(k, v)}
         exchange.sendResponseHeaders(status, body.length.toLong())
         val writer = exchange.responseBody.bufferedWriter()
         writer.write(body)

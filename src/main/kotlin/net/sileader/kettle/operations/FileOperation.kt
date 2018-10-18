@@ -10,10 +10,10 @@ import java.util.concurrent.*
 class FileOperation(val documentRoot: String, val ignorePattern: Regex, val contentTypes: Map<String, String>) : Operation() {
     companion object {
         val DEFAULT_CONTENT_TYPE = mapOf(
-                ".html" to "text/html",
-                ".css" to "text/css",
-                ".js" to "application/javascript",
-                ".txt" to "text/plain"
+                "html" to "text/html",
+                "css" to "text/css",
+                "js" to "application/javascript",
+                "txt" to "text/plain"
         )
         val DEFAULT_IGNORE_PATTERN = Regex("""/\..*""")
     }
@@ -24,33 +24,34 @@ class FileOperation(val documentRoot: String, val ignorePattern: Regex, val cont
     constructor(documentRoot: String, ignorePattern: Regex) : this(documentRoot, ignorePattern, DEFAULT_CONTENT_TYPE)
     constructor(documentRoot: String, contentTypes: Map<String, String>) : this(documentRoot, DEFAULT_IGNORE_PATTERN, contentTypes)
 
-    override fun get(request: Request, response: Response) {
+    override fun get(request: Request, response: Response, next: (Request, Response) -> Unit) {
         mThreadPool.execute {
             val path = "$documentRoot/${request.params["path"]}"
 
             if(ignorePattern.containsMatchIn(path)) {
                 response.status = 404
                 response.end()
-                return@execute
-            }
+            }else{
+                try{
+                    val file = File(path)
+                    val ext = contentTypes[file.extension.trimStart('.')]?:"application/octet-stream"
 
-            try{
-                val file = File(path)
-                val ext = contentTypes[file.extension]?:"application/octet-stream"
+                    val data = file.inputStream().bufferedReader().lines().reduce { s1, s2 -> s1 + "\n" + s2 }
 
-                val data = file.inputStream().bufferedReader().lines().reduce { s1, s2 -> s1 + "\n" + s2 }
-
-                if(data.isPresent) {
-                    response.headers["Content-Type"] = ext
-                    response.end(data.get())
-                }else{
+                    if(data.isPresent) {
+                        response.addHeader("Content-Type", ext)
+                        response.end(data.get())
+                    }else{
+                        response.status = 404
+                        response.end()
+                    }
+                }catch (e: FileNotFoundException) {
                     response.status = 404
                     response.end()
                 }
-            }catch (e: FileNotFoundException) {
-                response.status = 404
-                response.end()
             }
+
+            next(request, response)
         }
     }
 }
