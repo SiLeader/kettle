@@ -23,6 +23,18 @@ class PathOperation : Operation() {
     }
 }
 
+class WaitOperation : Operation() {
+    override fun get(request: Request, response: Response) {
+        val start = System.currentTimeMillis()
+        for(i in 0..9) {
+            Thread.sleep(1000)
+        }
+        val end = System.currentTimeMillis()
+        println((end - start).toString() + " ms")
+        response.end()
+    }
+}
+
 fun main(args: Array<String>) {
     Kettle(
             8080,
@@ -41,7 +53,8 @@ fun main(args: Array<String>) {
                                     inThe("/kettle") to PathOperation()
                             )
                     ),
-                    inThe("/file") to FileOperation("test_html")
+                    inThe("/file") to FileOperation("test_html"),
+                    "/wait" to WaitOperation()
             )
     ).run()
 }

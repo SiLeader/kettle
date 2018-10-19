@@ -10,7 +10,7 @@ class ContinuousRoutingOperation(private val router: Router) : Operation() {
         var path = request.params["path"] ?: request.url
         if(path.isEmpty())path = "/"
 
-        val req = Request(path, request.method, request.version, request.headers, request.payload, request.params, request.args)
+        val req = Request(path, request.method, request.version, request.headers, request.payload, request.params, request.args, request.server)
         router.route(req, response)
     }
 }
